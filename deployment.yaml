@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: jerryptl26/spring-boot-rest:1.0.0-20220726_145159
+          ports:
+            - containerPort: 8080
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  labels:
+    app: web
+  annotations:
+
+spec:
+  type: ClusterIP
+  selector:
+    app: web
+  ports:
+    - port: 8080
+      targetPort: 8080
+
+---
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: web
+  labels:
+    app: "web"
+    release: prometheus-operator
+spec:
+  selector:
+    matchLabels:
+      app: "web"
+  endpoints:
+    - port: http
+      scheme: http
+      interval: 15s
+      path: /actuator/prometheus
+      honorLabels: true
